@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package simbot_program;
+package tutorial;
+
+import simbot_core.AbstractRobot;
+import simbot_core.AbstractSimulation;
+import simbot_core.Setting;
+import simbot_core.UI_Simulation;
 
 import java.util.ArrayList;
 import java.util.List;
-import simbot_core.AbstractRobot;
-import simbot_core.AbstractSimulation;
-import simbot_core.JForm_Simulation;
 
 /**
  *
@@ -28,14 +30,21 @@ import simbot_core.JForm_Simulation;
  */
 public class Main {
     
-    public static void main(String args[]) throws InterruptedException {
-        List<AbstractRobot> robots = new ArrayList<AbstractRobot> ();
+    public static void main(String args[]) {
+        Setting.setEnv(new SampleEnv());
+
+        List<AbstractRobot> robots = new ArrayList<>();
         for (int i=0; i<10; i++) {
-            robots.add(new MyRobot());
+            robots.add(new StupidRobot());
         }
-        
-        JForm_Simulation sim_ui = new JForm_Simulation();
-        AbstractSimulation sim = new MySimulation(robots, sim_ui);
+
+        /* run simulation without GUI */
+        AbstractSimulation sim = new Simulation(robots);
         sim.startSimulation();
+
+        /* run simulation with GUI */
+        UI_Simulation ui = new UI_Simulation();
+        AbstractSimulation sim2 = new Simulation(robots, ui);
+        sim2.startSimulation();
     }
 }

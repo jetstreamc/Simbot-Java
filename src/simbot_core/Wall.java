@@ -4,9 +4,9 @@ package simbot_core;
  *
  * @author Chattriya
  */
-public class SB_Wall {
-    public int x1, x2, y1, y2;
-    public String label;
+public class Wall {
+    int x1, x2, y1, y2;
+    String label;
     
     /**
      * 
@@ -15,7 +15,7 @@ public class SB_Wall {
      * @param width the width of wall.
      * @param height the height of wall.
      */
-    public SB_Wall(int x, int y, int width, int height) {
+    public Wall(int x, int y, int width, int height) {
         this(x, y, width, height, "");
     }
     
@@ -27,7 +27,7 @@ public class SB_Wall {
      * @param height the height of wall.
      * @param label the text to be displayed on wall.
      */
-    public SB_Wall(int x, int y, int width, int height, String label)
+    public Wall(int x, int y, int width, int height, String label)
     {
         this.x1 = x;
         this.x2 = x+width;

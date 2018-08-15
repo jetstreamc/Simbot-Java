@@ -1,121 +1,99 @@
 package simbot_core;
 
-import simbot_program.MyEnvironment;
 import java.util.List;
 
 /**
  *
  * @author Chattriya
  */
-public abstract class AbstractSimulation {    
-    protected JForm_Simulation sim_ui;
-    protected boolean uiEnabled;
-    protected boolean isPause;
+public abstract class AbstractSimulation {
+
+    private UI_Simulation sim_ui;
+    private boolean uiEnabled;
+
     protected List<AbstractRobot> robots;
-    protected int countStep;
-    AbstractEnvironment env;
-            
+    protected int currentStep = 0;
+    protected AbstractEnv env = Setting.getEnv();
+
     /**
-     * 
+     *
      * @param robots the robots to be move in the maze.
-     * @param sim_ui the UI for simulation program. Set null to disable the user interface.
      */
-    public AbstractSimulation(List<AbstractRobot> robots, JForm_Simulation sim_ui) {
-        this.env = new MyEnvironment();
+    public AbstractSimulation(List<AbstractRobot> robots) {
         this.robots = robots;
-        this.countStep = 0;
-        this.sim_ui = sim_ui;
-        this.uiEnabled = (sim_ui != null);
-        if(uiEnabled) {
-            java.awt.EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    sim_ui.setVisible(true);
-                }
-            });
-        }
-    }
-    
-    public void setENV(AbstractEnvironment env) {
-        this.env = env;
     }
 
     /**
-     *  Start to perform the simulation
+     * 
+     * @param robots the robots to be move in the maze.
+     * @param ui the UI for simulation program.
      */
-    public void startSimulation() throws InterruptedException {
-        countStep = 0;
-        isPause = false;
+    public AbstractSimulation(List<AbstractRobot> robots, UI_Simulation ui) {
+        this.robots = robots;
+        this.sim_ui = ui;
+        this.uiEnabled = (ui != null);
         if(uiEnabled) {
-            int delay = env.getConstSimulationRefreshMillis();
-            while(!stopCondition()) {
-                stepSimulation();
-                Thread.sleep(delay);
+            java.awt.EventQueue.invokeLater(() -> ui.setVisible(true));
+        }
+    }
+
+    /**
+     * Start the simulation
+     */
+    public void startSimulation() {
+        currentStep = 0;
+        beforeSimulation();
+        while(!meetStoppingCriteria()) {
+            beforeStep();
+            currentStep++;
+            for(AbstractRobot r:robots) {
+                r.execute();
+                if (uiEnabled) {
+                    sim_ui.drawIR(r.getIRValues());
+                    sim_ui.drawDirection(r.smellAllFoods());
+                }
+                int foodToEat = CollisionLogic.checkRobotInFood(r.getPos().x, r.getPos().y);
+                if (foodToEat >= 0) {
+                    env.handleRobotEatFood(foodToEat);
+                }
+            }
+            afterStep();
+            if (uiEnabled) {
+                sim_ui.drawRobots(robots);
+                sim_ui.drawCountStep(currentStep);
+                try {
+                    Thread.sleep(env.getSimulationRefreshMillis());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        else {
-            while(!stopCondition()) {
-                stepSimulation();
-            }
-        }
+        afterSimulation();
     }
-    
-    public void closeUI() {
-        if(uiEnabled) {
-            sim_ui.dispose();
-        }
-    }
-    
+
     /**
-     * perform a single step of the simulation
+     * Check whether the simulation should be stop or not
+     * @return true if the simulation should be stopped
      */
-    protected void stepSimulation () {
-        if(uiEnabled && sim_ui.isPause()) 
-        {
-            return;
-        }
-        if(uiEnabled) 
-        { 
-            stepWithUI(); 
-        }
-        else 
-        { 
-            stepWithoutUI(); 
-        }
-        countStep++;
-        finishSingleStep();
-        if(stopCondition() == true)
-        {
-            finishSimulation();
-        }
-    }
-    
+    public abstract boolean meetStoppingCriteria();
+
     /**
-     *
-     * @return true - if the simulation reach the terminate condition.
-     * false - if not
+     *  Specify what to do before starting a step
      */
-    protected boolean stopCondition() {
-        return env.getConstSimulationMaxStep() < countStep;
-    }
-    
+    protected abstract void beforeStep();
+
     /**
-     * Specify what to do for each non-UI simulation at each step
+     *  Specify what to do after ending a step
      */
-    protected abstract void stepWithoutUI();
-    
+    protected abstract void afterStep();
+
     /**
-     *  Specify what to do for each UI-supported simulation at each step
+     *  Specify what to do before starting the simulation
      */
-    protected abstract void stepWithUI() ;
-    
+    protected abstract void beforeSimulation();
+
     /**
-     *  Specify what to do after ending the step
+     *  Specify what to do after ending the simulation
      */
-    protected abstract void finishSingleStep();
-    
-    /**
-     *  Specify what to do after end the simulation
-     */
-    protected abstract void finishSimulation();
+    protected abstract void afterSimulation();
 }

@@ -6,20 +6,23 @@ package simbot_core;
  */
 
 
-public class SB_RobotPosition {
-    public int x, y;
+public class Position {
+    int x, y;
     /**
      * 
      * @param x the x position of the robot
      * @param y the y position of the robot
      */
-    public SB_RobotPosition(int x, int y) {
+    public Position(int x, int y) {
         this.x = x;
         this.y = y;
     }
-    
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
+
+    /**
+     * @param pos an instance of {@link Position}
+     */
+    Position(Position pos) {
+        this.x = pos.x;
+        this.y = pos.y;
     }
 }
